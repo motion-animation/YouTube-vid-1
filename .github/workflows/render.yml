@@ -1,1 +1,52 @@
+name: Render Long-Form Video (16:9 / 9:16)
 
+on:
+  workflow_dispatch:
+    inputs:
+      video_format:
+        description: 'Aspect Ratio (16:9 for YouTube Long-Form, 9:16 for Shorts)'
+        required: True
+        default: '16:9'
+        type: choice
+        options:
+          - '16:9'
+          - '9:16'
+      render_seconds:
+        description: 'Optional cap in seconds for quick preview (leave empty for full timeline)'
+        required: False
+        default: ''
+
+jobs:
+  render-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install System Dependencies (FFmpeg & Chromium libs)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
+
+      - name: Install Node Packages
+        run: npm install puppeteer
+
+      - name: Render Video via Puppeteer + FFmpeg
+        env:
+          VIDEO_FORMAT: ${{ inputs.video_format }}
+          RENDER_SECONDS: ${{ inputs.render_seconds }}
+        run: node render.js
+
+      - name: Upload Rendered MP4 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-video-${{ inputs.video_format }}
+          path: output_visuals.mp4
+          retention-days: 14
