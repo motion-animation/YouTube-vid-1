@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Motion Animation Stage (16:9 & 9:16)</title>
+  <!-- GSAP & Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --stage-w: 1920px;
+      --stage-h: 1080px;
+      --bg-cream: #F4F1EA;
+      --ink-black: #111111;
+      --terracotta: #D95D39;
+      --drop-red: #E63946;
+      --brand-accent: #2563EB;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: var(--stage-w);
+      height: var(--stage-h);
+      overflow: hidden;
+      background: var(--bg-cream);
+      color: var(--ink-black);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Subtle paper grain grid backdrop */
+    #stage {
+      position: relative;
+      width: var(--stage-w);
+      height: var(--stage-h);
+      overflow: hidden;
+      background-color: var(--bg-cream);
+      background-image:
+        radial-gradient(rgba(17, 17, 17, 0.06) 1px, transparent 0);
+      background-size: 32px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Camera Rig Layer for push-in, whip-pan, parallax, overshoot */
+    #camera-rig {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    /* Scene Content Container */
+    #scene-container {
+      width: 84%;
+      height: 80%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Three.js WebGL Overlay Canvas */
+    #three-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Gemini White-Background PNG Asset Styling */
+    .png-asset {
+      mix-blend-mode: multiply;
+      filter: contrast(1.06);
+      object-fit: contain;
+      will-change: transform, opacity;
+    }
+
+    .headline-card {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(48px, 4.2vw, 84px);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      max-width: 1480px;
+    }
+
+    .marker-highlight {
+      background: linear-gradient(104deg, rgba(217, 93, 57, 0) 0.9%, rgba(217, 93, 57, 0.38) 2.4%, rgba(217, 93, 57, 0.28) 96%, rgba(217, 93, 57, 0) 98%);
+      padding: 0 14px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .big-metric {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(96px, 9vw, 176px);
+      font-weight: 800;
+      color: var(--terracotta);
+      letter-spacing: -0.03em;
+    }
+
+    .sub-badge {
+      margin-top: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 24px;
+      border: 2.5px solid var(--ink-black);
+      background: #FFFFFF;
+      box-shadow: 6px 6px 0 var(--ink-black);
+    }
+
+    /* Portrait 9:16 adjustments when format == 9:16 */
+    body[data-format="9:16"] #scene-container {
+      width: 88%;
+      height: 85%;
+    }
+  </style>
+</head>
+<body data-format="16:9">
+  <div id="stage">
+    <canvas id="three-canvas"></canvas>
+    <div id="camera-rig">
+      <div id="scene-container"></div>
+    </div>
+  </div>
+
+  <script>
+    window.SCRIPT_DATA = null;
+    window.MASTER_TL = gsap.timeline({ paused: true });
+
+    async function initStage(scriptData) {
+      window.SCRIPT_DATA = scriptData;
+      const meta = scriptData.meta || {};
+      const format = meta.format || "16:9";
+      const width = meta.width || (format === "16:9" ? 1920 : 1080);
+      const height = meta.height || (format === "16:9" ? 1080 : 1920);
+
+      document.body.setAttribute("data-format", format);
+      document.documentElement.style.setProperty("--stage-w", width + "px");
+      document.documentElement.style.setProperty("--stage-h", height + "px");
+
+      if (meta.palette) {
+        if (meta.palette.bg) document.documentElement.style.setProperty("--bg-cream", meta.palette.bg);
+        if (meta.palette.text) document.documentElement.style.setProperty("--ink-black", meta.palette.text);
+        if (meta.palette.accent) document.documentElement.style.setProperty("--terracotta", meta.palette.accent);
+        if (meta.palette.dropRed) document.documentElement.style.setProperty("--drop-red", meta.palette.dropRed);
+        if (meta.palette.brandAccent) document.documentElement.style.setProperty("--brand-accent", meta.palette.brandAccent);
+      }
+
+      buildTimeline(scriptData.scenes || []);
+      window.__STAGE_READY__ = true;
+    }
+
+    function buildTimeline(scenes) {
+      const container = document.getElementById("scene-container");
+      const rig = document.getElementById("camera-rig");
+      window.MASTER_TL.clear();
+
+      scenes.forEach((scene) => {
+        const start = Number(scene.start || 0);
+        const dur = Number(scene.duration || 2.5);
+
+        window.MASTER_TL.call(() => {
+          renderSceneDOM(scene, container);
+        }, null, start);
+
+        // Camera motion per scene
+        const zoomStart = scene.camera?.zoom?.[0] ?? 1.0;
+        const zoomEnd = scene.camera?.zoom?.[1] ?? 1.04;
+        const easeType = scene.camera?.overshoot ? "back.out(1.6)" : "power2.out";
+
+        window.MASTER_TL.fromTo(
+          rig,
+          { scale: zoomStart, x: scene.camera?.move === "whip-pan-right" ? -120 : 0 },
+          { scale: zoomEnd, x: 0, duration: dur, ease: easeType },
+          start
+        );
+      });
+    }
+
+    function renderSceneDOM(scene, container) {
+      const c = scene.content || {};
+      if (scene.preset === "headline_marker") {
+        let html = c.headline || "";
+        (c.highlightWords || []).forEach((w) => {
+          html = html.replace(w, `<span class="marker-highlight">${w}</span>`);
+        });
+        container.innerHTML = `
+          <div class="headline-card">${html}</div>
+          ${c.subtext ? `<div class="sub-badge">${c.subtext}</div>` : ""}
+        `;
+      } else if (scene.preset === "number_countup") {
+        container.innerHTML = `
+          <div class="big-metric">${c.prefix || ""}${Number(c.to || 0).toLocaleString()}${c.suffix || ""}</div>
+          <div class="sub-badge">${c.label || ""}</div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="sub-badge">${scene.preset.toUpperCase()}</div>
+          <div class="headline-card" style="margin-top:24px;">${c.title || c.headline || c.header || c.caption || c.quote || scene.id}</div>
+        `;
+      }
+    }
+
+    // Deterministic frame seek hook called by Puppeteer
+    window.seekToFrame = function(frame, fps) {
+      const timeSec = frame / fps;
+      window.MASTER_TL.seek(timeSec, false);
+    };
+
+    // Auto-load script.json when opened via local HTTP server
+    fetch("./script.json")
+      .then((r) => r.json())
+      .then((data) => initStage(data))
+      .catch(() => {
+        window.__STAGE_READY__ = false;
+      });
+  </script>
+</body>
+</html>
