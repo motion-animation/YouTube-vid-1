@@ -1,0 +1,109 @@
+{
+  "_note": "Names match the SFX column in the Scene Plan. Pick randomly among variants so repeats never sound identical. gain_db is the level relative to the voiceover (voice = 0 dB).",
+  "boom": {
+    "files": [
+      "sfx_boom.wav"
+    ],
+    "gain_db": -8
+  },
+  "riser": {
+    "files": [
+      "sfx_riser.wav"
+    ],
+    "gain_db": -12,
+    "note": "start it so the riser ends exactly on the next scene cut"
+  },
+  "whoosh": {
+    "files": [
+      "sfx_whoosh_1.wav",
+      "sfx_whoosh_2.wav",
+      "sfx_whoosh_3.wav"
+    ],
+    "gain_db": -14
+  },
+  "pop": {
+    "files": [
+      "sfx_pop_1.wav",
+      "sfx_pop_2.wav",
+      "sfx_pop_3.wav"
+    ],
+    "gain_db": -16
+  },
+  "thud": {
+    "files": [
+      "sfx_thud.wav"
+    ],
+    "gain_db": -10
+  },
+  "punch": {
+    "files": [
+      "sfx_punch.wav"
+    ],
+    "gain_db": -9
+  },
+  "ding": {
+    "files": [
+      "sfx_ding.wav"
+    ],
+    "gain_db": -16
+  },
+  "click": {
+    "files": [
+      "sfx_click.wav"
+    ],
+    "gain_db": -14
+  },
+  "tick": {
+    "files": [
+      "sfx_tick.wav"
+    ],
+    "gain_db": -18,
+    "note": "repeat every 0.12 s while a bar or counter grows"
+  },
+  "marker": {
+    "files": [
+      "sfx_marker.wav"
+    ],
+    "gain_db": -16
+  },
+  "paper slide": {
+    "files": [
+      "sfx_paper_slide.wav"
+    ],
+    "gain_db": -15
+  },
+  "cash register": {
+    "files": [
+      "sfx_cash_register.wav"
+    ],
+    "gain_db": -14
+  },
+  "glitch": {
+    "files": [
+      "sfx_glitch.wav"
+    ],
+    "gain_db": -14,
+    "aliases": [
+      "typewriter glitch"
+    ]
+  },
+  "suction": {
+    "files": [
+      "sfx_suction.wav"
+    ],
+    "gain_db": -14
+  },
+  "shutter": {
+    "files": [
+      "sfx_shutter.wav"
+    ],
+    "gain_db": -13
+  },
+  "mixing": {
+    "voice_lufs": -16,
+    "music_under_voice_db": -20,
+    "music_duck_on_chapter_card_db": -30,
+    "sfx_never_louder_than_voice": true,
+    "fade_ms": 5
+  }
+}
