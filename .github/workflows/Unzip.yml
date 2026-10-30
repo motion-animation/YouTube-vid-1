@@ -1,0 +1,64 @@
+name: Extract ZIP
+
+on:
+  workflow_dispatch:
+    inputs:
+      zip_name:
+        description: 'ZIP file name (root me). Khali chhodo to auto-detect karega.'
+        required: false
+        type: string
+
+permissions:
+  contents: write   # GITHUB_TOKEN ko push karne ki permission
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Extract ZIP and move to folder
+        shell: bash
+        env:
+          INPUT_ZIP: ${{ github.event.inputs.zip_name }}
+        run: |
+          set -euo pipefail
+
+          # 1) ZIP decide karo
+          ZIP_FILE="$INPUT_ZIP"
+          if [ -z "$ZIP_FILE" ]; then
+            ZIP_FILE=$(ls -1 *.zip 2>/dev/null | head -n1 || true)
+          fi
+
+          if [ -z "$ZIP_FILE" ] || [ ! -f "$ZIP_FILE" ]; then
+            echo "❌ Root me koi .zip nahi mila (ya diya hua naam galat hai)."
+            exit 1
+          fi
+          echo "📦 Using ZIP: $ZIP_FILE"
+
+          # 2) Folder name = zip ka naam bina .zip ke
+          FOLDER_NAME="${ZIP_FILE%.zip}"
+
+          # 3) Extract
+          mkdir -p "$FOLDER_NAME"
+          unzip -o "$ZIP_FILE" -d "$FOLDER_NAME"
+
+          # 4) ZIP remove from root
+          rm -f "$ZIP_FILE"
+          echo "✅ '$ZIP_FILE' -> '$FOLDER_NAME/' me extract ho gaya aur ZIP delete ho gaya"
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "ℹ️ Koi change nahi, commit skip."
+            exit 0
+          fi
+          git commit -m "chore: extract zip into folder [skip ci]"
+          git push
