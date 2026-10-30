@@ -1,0 +1,76 @@
+{
+  "_note": "Save the two downloaded WAV files next to this json with these exact names. Durations are from vidIQ. Loop each with a 4 s crossfade. Offsets let the same track sound different each time.",
+  "tracks": {
+    "main": {
+      "file": "music_main.wav",
+      "duration_s": 156.1,
+      "mood": "calm, focused, slightly curious",
+      "bpm": 92
+    },
+    "tension": {
+      "file": "music_tension.wav",
+      "duration_s": 146.8,
+      "mood": "serious, suspenseful",
+      "bpm": 80
+    }
+  },
+  "timeline": [
+    {
+      "scenes": "01-14",
+      "section": "Hook and four questions",
+      "track": "main",
+      "trim_start_s": 0
+    },
+    {
+      "scenes": "15-26",
+      "section": "Chapter 1",
+      "track": "main",
+      "trim_start_s": 40
+    },
+    {
+      "scenes": "27-38",
+      "section": "Chapter 2",
+      "track": "main",
+      "trim_start_s": 80
+    },
+    {
+      "scenes": "39-57",
+      "section": "Chapter 3",
+      "track": "main",
+      "trim_start_s": 20
+    },
+    {
+      "scenes": "58-69",
+      "section": "Chapter 4",
+      "track": "main",
+      "trim_start_s": 60
+    },
+    {
+      "scenes": "70-80",
+      "section": "Chapter 5",
+      "track": "tension",
+      "trim_start_s": 0
+    },
+    {
+      "scenes": "81-84",
+      "section": "Verdict, first half",
+      "track": "tension",
+      "trim_start_s": 60
+    },
+    {
+      "scenes": "85-91",
+      "section": "Verdict, ending",
+      "track": "main",
+      "trim_start_s": 100
+    }
+  ],
+  "mix": {
+    "music_under_voice_db": -20,
+    "chapter_card_duck_db": -30,
+    "crossfade_s": 4,
+    "fade_in_s": 2,
+    "fade_out_s": 6,
+    "loop_with_crossfade": true,
+    "voice_lufs": -16
+  }
+}
