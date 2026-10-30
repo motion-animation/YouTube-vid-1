@@ -1,11 +1,12 @@
-name: Extract ZIP
+name: Bulk Extract ZIPs
 
 on:
   workflow_dispatch:
     inputs:
-      zip_name:
-        description: 'ZIP file name (root me). Khali chhodo to auto-detect karega.'
+      zip_pattern:
+        description: 'ZIP pattern (default: *.zip). Example: *.zip, data-*.zip'
         required: false
+        default: '*.zip'
         type: string
 
 permissions:
@@ -17,38 +18,73 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: Extract ZIP and move to folder
+      - name: Bulk extract ZIPs
         shell: bash
         env:
-          INPUT_ZIP: ${{ github.event.inputs.zip_name }}
+          PATTERN: ${{ github.event.inputs.zip_pattern }}
         run: |
           set -euo pipefail
 
-          # 1) ZIP decide karo
-          ZIP_FILE="$INPUT_ZIP"
-          if [ -z "$ZIP_FILE" ]; then
-            ZIP_FILE=$(ls -1 *.zip 2>/dev/null | head -n1 || true)
+          PATTERN="${PATTERN:-*.zip}"
+
+          # Root me matching zip files collect karo (null-separated for safety)
+          mapfile -d '' ZIPS < <(find . -maxdepth 1 -type f -name "$PATTERN" -print0)
+
+          if [ "${#ZIPS[@]}" -eq 0 ]; then
+            echo "⚠️ Root me '$PATTERN' se koi ZIP nahi mila."
+            exit 0
           fi
 
-          if [ -z "$ZIP_FILE" ] || [ ! -f "$ZIP_FILE" ]; then
-            echo "❌ Root me koi .zip nahi mila (ya diya hua naam galat hai)."
+          echo "📦 Total ZIPs mile: ${#ZIPS[@]}"
+          printf '   - %s\n' "${ZIPS[@]}"
+
+          EXTRACTED=0
+          FAILED=()
+
+          for ZIP in "${ZIPS[@]}"; do
+            BASE="$(basename "$ZIP")"
+            FOLDER="${BASE%.zip}"
+
+            # Safety: folder name empty na ho (jaise ".zip" file)
+            if [ -z "$FOLDER" ] || [ "$FOLDER" = "$BASE" ]; then
+              echo "❌ Skip (bad name): $BASE"
+              FAILED+=("$BASE")
+              continue
+            fi
+
+            # Folder pehle se exist karta ho to skip (overwrite nahi)
+            if [ -e "$FOLDER" ]; then
+              echo "⏭️  Skip '$BASE' — folder '$FOLDER' already exists."
+              continue
+            fi
+
+            echo "🔧 Extracting: $BASE -> $FOLDER/"
+            mkdir -p "$FOLDER"
+            if unzip -q -o "$ZIP" -d "$FOLDER"; then
+              rm -f "$ZIP"
+              EXTRACTED=$((EXTRACTED + 1))
+              echo "   ✅ Done, ZIP removed."
+            else
+              echo "   ❌ unzip fail hua: $BASE"
+              FAILED+=("$BASE")
+              # half-extracted folder clean karo
+              rm -rf "$FOLDER"
+            fi
+          done
+
+          echo "──────────────────────────────"
+          echo "✅ Extracted: $EXTRACTED"
+          echo "❌ Failed   : ${#FAILED[@]}"
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            printf '   - %s\n' "${FAILED[@]}"
             exit 1
           fi
-          echo "📦 Using ZIP: $ZIP_FILE"
-
-          # 2) Folder name = zip ka naam bina .zip ke
-          FOLDER_NAME="${ZIP_FILE%.zip}"
-
-          # 3) Extract
-          mkdir -p "$FOLDER_NAME"
-          unzip -o "$ZIP_FILE" -d "$FOLDER_NAME"
-
-          # 4) ZIP remove from root
-          rm -f "$ZIP_FILE"
-          echo "✅ '$ZIP_FILE' -> '$FOLDER_NAME/' me extract ho gaya aur ZIP delete ho gaya"
 
       - name: Commit and push
+        if: success()
         shell: bash
         run: |
           set -e
@@ -60,5 +96,5 @@ jobs:
             echo "ℹ️ Koi change nahi, commit skip."
             exit 0
           fi
-          git commit -m "chore: extract zip into folder [skip ci]"
+          git commit -m "chore: bulk extract zips into folders [skip ci]"
           git push
