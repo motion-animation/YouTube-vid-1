@@ -16,32 +16,53 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT || github.token }}
 
-      - name: Clean old files, extract zip, and remove zip
+      - name: Clean repo, extract any zip, and delete zip
+        env:
+          HAS_PAT: ${{ secrets.GH_PAT != '' }}
         run: |
-          set -e
-          ZIP_FILE=$(ls -1 *.zip 2>/dev/null | head -n 1)
-          if [ -z "$ZIP_FILE" ]; then
-            echo "No .zip file found in repository root!"
-            exit 1
-          fi
-          echo "Found zip: $ZIP_FILE"
+          python3 - << 'EOF'
+          import glob, os, shutil, zipfile
 
-          # Delete everything except .git, .github, and the zip file
-          find . -mindepth 1 -maxdepth 1 \
-            ! -name '.git' \
-            ! -name '.github' \
-            ! -name "$ZIP_FILE" \
-            -exec rm -rf {} +
+          zips = sorted(glob.glob("*.zip"))
+          if not zips:
+              raise SystemExit("ERROR: Repo root me koi .zip file nahi mili!")
 
-          # Extract zip into repo root (skip .github/workflows unless GH_PAT is set)
-          if [ -n "${{ secrets.GH_PAT }}" ]; then
-            unzip -o "$ZIP_FILE" -d .
-          else
-            unzip -o "$ZIP_FILE" -x ".github/workflows/*" -d .
-          fi
+          zip_path = zips[0]
+          print(f"Found zip: {zip_path}")
 
-          # Auto-delete the zip file
-          rm -f "$ZIP_FILE"
+          has_pat = os.environ.get("HAS_PAT", "false").lower() == "true"
+
+          # Delete everything in root except .git, .github, and the zip file
+          for item in os.listdir("."):
+              if item in (".git", ".github", zip_path):
+                  continue
+              if os.path.isdir(item):
+                  shutil.rmtree(item)
+              else:
+                  os.remove(item)
+
+          # Extract zip
+          with zipfile.ZipFile(zip_path, "r") as zf:
+              for member in zf.infolist():
+                  if member.is_dir():
+                      continue
+                  # Skip .github/workflows/* if GH_PAT is not set (GitHub blocks GITHUB_TOKEN workflow pushes)
+                  if not has_pat and member.filename.startswith(".github/workflows/"):
+                      print(f"Skipping {member.filename} (set GH_PAT secret to update workflows)")
+                      continue
+                  target = os.path.normpath(member.filename)
+                  if target.startswith(".."):
+                      continue
+                  parent = os.path.dirname(target)
+                  if parent:
+                      os.makedirs(parent, exist_ok=True)
+                  with zf.open(member) as src, open(target, "wb") as dst:
+                      shutil.copyfileobj(src, dst)
+
+          # Auto-delete zip
+          os.remove(zip_path)
+          print("Unpack complete & zip deleted!")
+          EOF
 
       - name: Commit and push extracted files
         run: |
@@ -51,6 +72,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "chore: replace repo contents with extracted zip"
+            git commit -m "chore: unpack zip and clean repo"
             git push
           fi
