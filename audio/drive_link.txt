@@ -1,0 +1,2 @@
+# Paste your Google Drive audio share link below on a single line (file must be set to "Anyone with the link"):
+# Example: https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing

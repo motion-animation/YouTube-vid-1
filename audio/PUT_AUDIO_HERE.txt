@@ -1,0 +1,2 @@
+Drop your voiceover audio file here (e.g., audio.mp3, voiceover.wav, or narration.m4a).
+render.py will automatically detect and sync it with all 72 HTML scenes and SFX!

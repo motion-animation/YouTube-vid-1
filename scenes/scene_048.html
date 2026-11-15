@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1280, height=720, initial-scale=1.0" />
+  <title>Scene 048 — Tape Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1280px; height: 720px; overflow: hidden; background: #FAFAFC;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #0F172A; user-select: none;
+    }
+    .font-display { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .tabular { font-variant-numeric: tabular-nums; }
+
+    #stage {
+      position: relative; width: 1280px; height: 720px; background: #FAFAFC;
+      background-image: radial-gradient(rgba(15, 23, 42, 0.075) 1px, transparent 1px);
+      background-size: 28px 28px; overflow: hidden;
+    }
+    .blob-1 {
+      position: absolute; top: -180px; left: -140px; width: 620px; height: 620px;
+      border-radius: 9999px; background: rgba(191, 219, 254, 0.55); filter: blur(115px); pointer-events: none;
+    }
+    .blob-2 {
+      position: absolute; bottom: -180px; right: -140px; width: 620px; height: 620px;
+      border-radius: 9999px; background: rgba(199, 210, 254, 0.45); filter: blur(115px); pointer-events: none;
+    }
+    .camera-rig {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 44px 72px 96px 72px;
+      transform-origin: center center; will-change: transform;
+    }
+
+    /* Clean Text-Only Brand Watermark (No Icon, No Scene Counter) */
+    .brand-text {
+      position: absolute; top: 26px; left: 38px; z-index: 20; pointer-events: none;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 16px;
+      letter-spacing: -0.02em; color: rgba(15, 23, 42, 0.55);
+    }
+
+    /* Clean Floating Subtitles (No Background Pill, No Waveform) */
+    .subtitle-wrap {
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      max-width: 980px; width: 90%; z-index: 30; pointer-events: none; text-align: center;
+    }
+    #subtitle-text {
+      font-size: 21px; font-weight: 700; line-height: 1.35; color: #0F172A;
+      text-shadow: 0 2px 10px rgba(255,255,255,0.95), 0 0 20px rgba(255,255,255,0.9);
+      letter-spacing: -0.01em;
+    }
+
+    .card {
+      background: #FFFFFF; border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: 24px; box-shadow: 0 20px 56px -12px rgba(15, 23, 42, 0.08);
+    }
+    .card-dark {
+      background: #0F172A; color: #FFFFFF;
+      border-radius: 24px; box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.25);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 8px 18px; border-radius: 9999px;
+      background: #FFFFFF; border: 1px solid #E2E8F0;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #2563EB; box-shadow: 0 4px 12px rgba(15,23,42,0.04);
+    }
+    .grad-text {
+      background: linear-gradient(135deg, #2563EB, #4F46E5);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage" data-scene="48" data-duration="12.500">
+    <div class="blob-1"></div>
+    <div class="blob-2"></div>
+    <div class="brand-text">Tape Market</div>
+    <div id="camera" class="camera-rig">
+        <div data-anim="pop" data-delay="0.05" class="badge" style="color:#E11D48;margin-bottom:20px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path stroke-linecap="round" d="M12 9v4m0 4h.01"/></svg> <span>THE 2 : 1 TRAP</span></div>
+        <div data-anim="tilt" data-delay="0.15" class="card-dark" style="padding:44px 64px;text-align:center;border:2px solid #E11D48;">
+          <div style="font-size:28px;font-weight:800;color:#FB7185;margin-bottom:14px;">$2 Risk → $1 Reward</div>
+          <h1 class="font-display" style="font-size:46px;font-weight:800;">Panic exit winners, hold losers.</h1>
+          <p data-anim="rise" data-delay="0.8" style="font-size:20px;color:#94A3B8;margin-top:12px;">Hoping for a recovery destroys expectancy.</p>
+        </div></div>
+    <div class="subtitle-wrap"><span id="subtitle-text"></span></div>
+  </div>
+  <script>
+    window.SCENE_DURATION = 12.500;
+    const CUES = [{"id": 65, "local_start": 0.14, "local_end": 6.0, "text": "mathematically. Now compare that to a 2 to 1 ratio, risking $2 to make $1,"}, {"id": 66, "local_start": 6.28, "local_end": 10.9, "text": "which is common among traders who panic exit winners but hold onto losing positions,"}, {"id": 67, "local_start": 11.18, "local_end": 12.12, "text": "hoping for a recovery."}];
+    const ZOOM_MODE = "zoom-in";
+    const camera = document.getElementById('camera');
+    const subTextEl = document.getElementById('subtitle-text');
+
+    function easeOutExpo(x) { return x >= 1 ? 1 : 1 - Math.pow(2, -10 * x); }
+    function easeOutCubic(x) { return 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3); }
+    function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+
+    window.seek = function(t) {
+      const dur = window.SCENE_DURATION || 1;
+      const p = clamp01(t / dur);
+
+      // Continuous Apple/Google-style camera zoom-in / zoom-out + subtle drift
+      let camScale = 1.0;
+      let camY = 0;
+      if (ZOOM_MODE === 'zoom-in') {
+        camScale = 0.98 + 0.08 * easeOutCubic(p);
+        camY = -6 * p;
+      } else if (ZOOM_MODE === 'zoom-out') {
+        camScale = 1.09 - 0.09 * easeOutExpo(clamp01(p * 1.8));
+      } else if (ZOOM_MODE === 'zoom-punch') {
+        camScale = p < 0.22 ? (1.10 - 0.10 * easeOutExpo(p / 0.22)) : (1.0 + 0.04 * ((p - 0.22) / 0.78));
+      }
+      camera.style.transform = `translateY(${camY.toFixed(2)}px) scale(${camScale.toFixed(4)})`;
+
+      document.querySelectorAll('[data-anim]').forEach(el => {
+        const delay = parseFloat(el.dataset.delay || '0');
+        const adur = parseFloat(el.dataset.dur || '0.5');
+        const ap = clamp01((t - delay) / adur);
+        const e = easeOutExpo(ap);
+        const kind = el.dataset.anim;
+        el.style.opacity = e.toFixed(3);
+        if (kind === 'rise') {
+          el.style.transform = `translateY(${((1 - e) * 38).toFixed(1)}px) scale(${(0.95 + 0.05 * e).toFixed(4)})`;
+        } else if (kind === 'pop') {
+          const s = ap < 0.65 ? (0.80 + 0.25 * (ap / 0.65)) : (1.05 - 0.05 * ((ap - 0.65) / 0.35));
+          el.style.transform = `scale(${s.toFixed(4)})`;
+        } else if (kind === 'tilt') {
+          el.style.transform = `perspective(1200px) rotateX(${((1 - e) * 10).toFixed(2)}deg) translateY(${((1 - e) * 26).toFixed(1)}px) scale(${(0.94 + 0.06 * e).toFixed(4)})`;
+        } else if (kind === 'left') {
+          el.style.transform = `translateX(${((1 - e) * -45).toFixed(1)}px)`;
+        } else if (kind === 'right') {
+          el.style.transform = `translateX(${((1 - e) * 45).toFixed(1)}px)`;
+        }
+      });
+
+      document.querySelectorAll('[data-counter]').forEach(el => {
+        const target = parseFloat(el.dataset.counter);
+        const dec = parseInt(el.dataset.dec || '0', 10);
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        const delay = parseFloat(el.dataset.delay || '0.1');
+        const cdur = parseFloat(el.dataset.dur || '1.1');
+        const cp = easeOutCubic(clamp01((t - delay) / cdur));
+        el.textContent = prefix + (target * cp).toFixed(dec) + suffix;
+      });
+
+      document.querySelectorAll('[data-svg-draw]').forEach(el => {
+        const len = parseFloat(el.dataset.svgDraw || '600');
+        const delay = parseFloat(el.dataset.delay || '0.15');
+        const sdur = parseFloat(el.dataset.dur || '1.5');
+        const sp = easeOutCubic(clamp01((t - delay) / sdur));
+        el.style.strokeDasharray = len;
+        el.style.strokeDashoffset = (len * (1 - sp)).toFixed(2);
+      });
+
+      document.querySelectorAll('[data-bar-w]').forEach(el => {
+        const targetW = parseFloat(el.dataset.barW);
+        const delay = parseFloat(el.dataset.delay || '0.2');
+        const bdur = parseFloat(el.dataset.dur || '0.9');
+        const bp = easeOutExpo(clamp01((t - delay) / bdur));
+        el.style.width = (targetW * bp).toFixed(2) + '%';
+      });
+
+      let activeCue = CUES[0];
+      for (let i = 0; i < CUES.length; i++) {
+        if (t >= CUES[i].local_start) activeCue = CUES[i];
+      }
+      if (activeCue) subTextEl.textContent = activeCue.text;
+    };
+
+    window.seek(0);
+    if (!window.__RENDER_MODE__) {
+      let startTs = null;
+      function loop(ts) {
+        if (window.__RENDER_MODE__) return;
+        if (!startTs) startTs = ts;
+        window.seek(((ts - startTs) / 1000) % window.SCENE_DURATION);
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+    }
+  </script>
+</body>
+</html>

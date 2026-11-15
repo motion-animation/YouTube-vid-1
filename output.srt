@@ -1,0 +1,472 @@
+1
+00:00:00,000 --> 00:00:04,000
+90% of traders are obsessed with one number, win rate.
+
+2
+00:00:04,600 --> 00:00:06,340
+I win 7 out of 10 trades.
+
+3
+00:00:06,980 --> 00:00:07,980
+Sounds great, right?
+
+4
+00:00:08,720 --> 00:00:09,500
+Here's the problem.
+
+5
+00:00:10,080 --> 00:00:13,900
+Win rate alone tells you almost nothing about whether a strategy is profitable.
+
+6
+00:00:14,680 --> 00:00:17,860
+You can win 80% of your trades and still blow your account.
+
+7
+00:00:18,440 --> 00:00:22,380
+And you can win just 30% of your trades and become extremely profitable.
+
+8
+00:00:23,000 --> 00:00:25,940
+Today we're breaking down the actual mathematics behind this.
+
+9
+00:00:25,940 --> 00:00:30,840
+The formula is that prop firms, hedge funds and professional trading desks use to evaluate
+
+10
+00:00:30,840 --> 00:00:34,020
+a strategy before a single dollar is ever risked.
+
+11
+00:00:34,340 --> 00:00:37,760
+This is tape market, and this channel is built around one principle.
+
+12
+00:00:38,280 --> 00:00:42,900
+We look at the numbers, the publicly available data, and the mathematical frameworks the
+
+13
+00:00:42,900 --> 00:00:44,620
+trading industry already runs on.
+
+14
+00:00:45,180 --> 00:00:48,420
+No opinions, no hype, just the calculation.
+
+15
+00:00:49,540 --> 00:00:54,400
+Let's start with the core equation every trader needs to understand, the expectancy formula.
+
+16
+00:00:55,100 --> 00:01:02,060
+Expectancy equals win rate multiplied by average win minus loss rate multiplied by average loss.
+
+17
+00:01:02,620 --> 00:01:03,400
+That's it.
+
+18
+00:01:03,920 --> 00:01:10,960
+That one formula tells you on average how much you can expect to make or lose per trade over a large number of trades.
+
+19
+00:01:11,360 --> 00:01:15,160
+If expectancy is positive, the strategy has a mathematical edge.
+
+20
+00:01:15,680 --> 00:01:20,320
+If it's negative or zero, no amount of good trading psychology will save it.
+
+21
+00:01:20,320 --> 00:01:23,720
+You are mathematically guaranteed to lose money over time.
+
+22
+00:01:24,420 --> 00:01:25,720
+Let's put in real numbers.
+
+23
+00:01:26,480 --> 00:01:28,520
+Say a strategy has a 40% win rate.
+
+24
+00:01:28,980 --> 00:01:30,660
+That means 60% of trades lose.
+
+25
+00:01:31,520 --> 00:01:36,040
+Now assume every winning trade makes $200 and every losing trade loses $100.
+
+26
+00:01:36,680 --> 00:01:41,560
+That's a one to two risk to reward ratio, risking $1 to make $2.
+
+27
+00:01:42,500 --> 00:01:49,400
+Expectancy equals 0.40 times 200 minus 0.60 times 100.
+
+28
+00:01:49,960 --> 00:01:54,540
+That's 80 minus 60, which equals positive $20 per trade on average.
+
+29
+00:01:55,320 --> 00:02:00,160
+So even though this strategy loses more often than it wins, losing 60% of the time,
+
+30
+00:02:00,560 --> 00:02:05,240
+it is still profitable because the size of the wins outweighs the frequency of the losses.
+
+31
+00:02:05,800 --> 00:02:09,240
+This is the first major insight serious traders understand.
+
+32
+00:02:09,860 --> 00:02:12,660
+Win rate and risk reward are not separate numbers.
+
+33
+00:02:13,160 --> 00:02:14,020
+They are a system.
+
+34
+00:02:14,700 --> 00:02:16,400
+One compensates for the other.
+
+35
+00:02:17,320 --> 00:02:18,200
+Now let's flip it.
+
+36
+00:02:18,620 --> 00:02:20,080
+Say a trader has a high win rate.
+
+37
+00:02:20,540 --> 00:02:22,780
+70% feels amazing on paper.
+
+38
+00:02:23,300 --> 00:02:24,920
+But the risk reward is poor.
+
+39
+00:02:25,520 --> 00:02:31,360
+They risk $200 to make only $100 because they cut winners early and let losers run.
+
+40
+00:02:31,920 --> 00:02:35,180
+Which is actually one of the most common patterns seen in retail trading data.
+
+41
+00:02:35,820 --> 00:02:40,880
+Expectancy equals 0.70 times 100 minus 0.30 times 200.
+
+42
+00:02:41,320 --> 00:02:45,280
+That's 70 minus 60, which equals positive $10 per trade.
+
+43
+00:02:45,920 --> 00:02:49,040
+Still technically profitable, but notice something important.
+
+44
+00:02:49,600 --> 00:02:55,080
+The high win rate strategy has a much thinner margin than the lower win rate strategy we calculated
+
+45
+00:02:55,080 --> 00:02:57,180
+earlier, $10 versus $20.
+
+46
+00:02:58,140 --> 00:03:03,680
+This is exactly why win rate by itself is a misleading metric when it's presented in isolation.
+
+47
+00:03:03,680 --> 00:03:07,120
+Which is exactly how it tends to get presented in most trading content.
+
+48
+00:03:07,560 --> 00:03:10,120
+Now here's where it becomes genuinely interesting.
+
+49
+00:03:10,660 --> 00:03:12,300
+The break even win rate formula.
+
+50
+00:03:12,900 --> 00:03:19,160
+This tells you the minimum win rate required for a given risk reward ratio just to not lose money
+
+51
+00:03:19,160 --> 00:03:20,740
+before even talking about profit.
+
+52
+00:03:21,780 --> 00:03:26,400
+Break even win rate equals risk divided by risk plus reward.
+
+53
+00:03:26,980 --> 00:03:31,860
+Let's calculate a few combinations because this is the part every trader should have memorized.
+
+54
+00:03:32,420 --> 00:03:36,720
+If the risk reward ratio is 1 to 1, risking $1 to make $1,
+
+55
+00:03:37,120 --> 00:03:43,600
+break even win rate equals 1 divided by 1 plus 1, which equals 1 divided by 2, that's 50%.
+
+56
+00:03:43,600 --> 00:03:45,100
+Makes intuitive sense.
+
+57
+00:03:45,540 --> 00:03:49,580
+If wins and losses are equal size, you need to win half the time just to break even.
+
+58
+00:03:50,560 --> 00:03:57,480
+If the risk reward ratio is 1 to 2, risking $1 to make $2, break even win rate equals 1 divided
+
+59
+00:03:57,480 --> 00:04:03,340
+by 1 plus 2, which equals 1 divided by 3. That's approximately 33.3%.
+
+60
+00:04:03,340 --> 00:04:08,740
+With this ratio, a trader only needs to win roughly 1 out of every 3 trades to break even.
+
+61
+00:04:09,180 --> 00:04:10,640
+Anything above that becomes profit.
+
+62
+00:04:11,600 --> 00:04:15,840
+If the risk reward ratio is 1 to 3, risking $1 to make $3,
+
+63
+00:04:16,360 --> 00:04:23,300
+break even win rate equals 1 divided by 1 plus 3, which equals 1 divided by 4, that's 25%.
+
+64
+00:04:23,300 --> 00:04:28,640
+A trader using this ratio can be wrong three out of four times and still not lose money,
+
+65
+00:04:28,920 --> 00:04:34,780
+mathematically. Now compare that to a 2 to 1 ratio, risking $2 to make $1,
+
+66
+00:04:35,060 --> 00:04:39,680
+which is common among traders who panic exit winners but hold onto losing positions,
+
+67
+00:04:39,960 --> 00:04:40,900
+hoping for a recovery.
+
+68
+00:04:41,660 --> 00:04:47,340
+Break even win rate equals 2 divided by 2 plus 1, which equals 2 divided by 3,
+
+69
+00:04:47,340 --> 00:04:54,160
+that's approximately 66.7%. That means a trader needs to be right two out of every three times
+
+70
+00:04:54,160 --> 00:04:59,180
+just to avoid losing money. That is an extremely difficult bar to clear consistently,
+
+71
+00:04:59,340 --> 00:05:03,280
+based on publicly available long-term performance data across retail accounts.
+
+72
+00:05:03,980 --> 00:05:09,420
+This single formula explains why so many statistically skilled traders with decent market
+
+73
+00:05:09,420 --> 00:05:14,980
+reading ability still end up losing. Their risk reward structure demands a win rate that is simply
+
+74
+00:05:14,980 --> 00:05:20,960
+unrealistic to sustain. Now let's bring in prop firm math specifically, because the calculation
+
+75
+00:05:20,960 --> 00:05:27,060
+changes once a draw-down limit and profit target enter the picture. Most prop firm evaluations have
+
+76
+00:05:27,060 --> 00:05:33,680
+three fixed numbers, a profit target, usually around 8 to 10% of the account, a maximum draw-down
+
+77
+00:05:33,680 --> 00:05:39,940
+limit, usually 10%, meaning if the account drops 10% from its starting balance, the evaluation fails,
+
+78
+00:05:40,540 --> 00:05:46,240
+and a daily draw-down limit, often around 5%, meaning a single day's loss cannot exceed that.
+
+79
+00:05:46,700 --> 00:05:52,360
+Let's calculate what risk reward and win rate combination is needed to pass using a 10% profit
+
+80
+00:05:52,360 --> 00:05:59,820
+target and a 10% max draw-down on a hypothetical $100,000 account. Say a trader risks 0.5% of the
+
+81
+00:05:59,820 --> 00:06:06,680
+account per trade, that's $500 per trade. To reach the 10% target, which is $10,000 using our
+
+82
+00:06:06,680 --> 00:06:12,800
+expectancy formula, we need to know how many trades it will mathematically take. If the strategy has
+
+83
+00:06:12,800 --> 00:06:22,700
+a 1 to 2 risk reward ratio, meaning $500 risked to make a $1000 and a 45% win rate, well above the 33.3%
+
+84
+00:06:22,700 --> 00:06:30,720
+break even we calculated earlier, expectancy per trade equals 0.45 times a thousand, minus 0.55 times
+
+85
+00:06:30,720 --> 00:06:40,140
+500, that's 450 minus 275, which equals positive $175 of expected value per trade on average.
+
+86
+00:06:40,740 --> 00:06:47,940
+To reach $10,000 mathematically, that requires approximately 10,000 divided by 175, which equals roughly
+
+87
+00:06:47,940 --> 00:06:54,380
+57 trades, on average accounting for variance. Now here's the critical part, the draw-down constraint,
+
+88
+00:06:54,800 --> 00:07:02,400
+with $500 risked per trade and a 10% max draw-down of 10,000, a trader can withstand 20 consecutive
+
+89
+00:07:02,400 --> 00:07:09,580
+losing trades before breaching the limit. Given a 45% win rate, meaning up 55% chance of losing any
+
+90
+00:07:09,580 --> 00:07:15,180
+single trade, the probability of 20 losses in a row is statistically almost negligible,
+
+91
+00:07:15,580 --> 00:07:21,560
+but strings of 6, 7, or 8 consecutive losses are well within normal statistical variance for that
+
+92
+00:07:21,560 --> 00:07:27,100
+win rate, and this is exactly the kind of draw-down data every prop firm risk model accounts for.
+
+93
+00:07:27,560 --> 00:07:33,560
+This is why position sizing is mathematically inseparable from the win rate and risk reward combination.
+
+94
+00:07:34,180 --> 00:07:39,640
+A trader can have a profitable expectancy and still fail in evaluation, purely because their
+
+95
+00:07:39,640 --> 00:07:46,100
+position size relative to the draw-down limit was too large, causing a statistically normal losing
+
+96
+00:07:46,100 --> 00:07:52,260
+streak to breach the account. Let's run one more calculation, the Kelly criterion. The formula
+
+97
+00:07:52,260 --> 00:07:58,000
+institutional risk desks used to calculate the mathematically optimal percentage of capital to risk
+
+98
+00:07:58,000 --> 00:08:05,020
+per trade, given a known win rate and risk reward ratio. Kelly percentage equals win rate minus
+
+99
+00:08:05,440 --> 00:08:13,380
+loss rate divided by risk reward ratio. Using our earlier example, 45% win rate, 1 to 2 risk reward
+
+100
+00:08:13,380 --> 00:08:24,560
+ratio, Kelly percentage equals 0.45 minus 0.55 divided by 2. That's 0.45 minus 0.275, which equals 0.175,
+
+101
+00:08:24,620 --> 00:08:32,960
+or 17.5%. Now, this does not mean risking 17.5% of an account per trade. That number represents the
+
+102
+00:08:32,960 --> 00:08:39,380
+theoretical ceiling before the math starts working against the trader. In practice, professional risk
+
+103
+00:08:39,380 --> 00:08:46,480
+management data consistently shows that quarter Kelly or even 10th Kelly sizing, so roughly 1.7%
+
+104
+00:08:46,480 --> 00:08:53,620
+to 4.3% in this case, produces far smoother equity curves with dramatically lower draw-down variants
+
+105
+00:08:53,620 --> 00:09:00,600
+based on long-run simulation data across thousands of trade sequences. So let's bring this all together
+
+106
+00:09:00,600 --> 00:09:07,140
+into one clear framework, purely from the mathematics. First, win rate alone means nothing without the
+
+107
+00:09:07,140 --> 00:09:13,420
+paired risk reward ratio. Second, the break-even win rate formula, risk divided by risk plus reward,
+
+108
+00:09:13,700 --> 00:09:18,760
+tells you the exact minimum performance of strategy needs before profit even enters the conversation.
+
+109
+00:09:19,500 --> 00:09:25,740
+Third, expectancy, win rate times average win, minus loss rate times average loss, is the single
+
+110
+00:09:25,740 --> 00:09:32,460
+number that actually determines long-term profitability. And fourth, for prop firm evaluations specifically,
+
+111
+00:09:32,460 --> 00:09:39,000
+position sizing relative to the draw-down limit determines survivability, independent of whether the
+
+112
+00:09:39,000 --> 00:09:46,020
+underlying strategy has positive expectancy. These four calculations together are the actual mathematical
+
+113
+00:09:46,020 --> 00:09:51,740
+skeleton underneath every profitable trading strategy that exists. Not the entry signal,
+
+114
+00:09:52,020 --> 00:09:57,740
+not the indicator, not the chart pattern, the math of risk, reward, and position size.
+
+115
+00:09:58,360 --> 00:10:03,640
+If this kind of data-driven breakdown is useful, the next video on this channel will go deeper into
+
+116
+00:10:03,640 --> 00:10:09,620
+variance and draw-down probability modeling. The statistics behind exactly how long a losing streak
+
+117
+00:10:09,620 --> 00:10:15,640
+can realistically run, even with a profitable strategy, and what the data says about it. This has been
+
+118
+00:10:15,640 --> 00:10:16,100
+tape market.
+
