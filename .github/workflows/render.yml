@@ -1,4 +1,4 @@
-name: Render Tape Market 1080p Video
+name: Render Tape Market 1080p Video (8x Parallel Matrix)
 
 on:
   workflow_dispatch:
@@ -7,15 +7,39 @@ on:
         description: "Google Drive share link (or File ID) for your voiceover audio (Anyone with the link)"
         required: false
         default: ""
-  push:
-    branches:
-      - main
-      - master
 
 jobs:
-  render-video:
+  render-chunks:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - part: 1
+            start: 1
+            end: 11
+          - part: 2
+            start: 12
+            end: 22
+          - part: 3
+            start: 23
+            end: 33
+          - part: 4
+            start: 34
+            end: 44
+          - part: 5
+            start: 45
+            end: 55
+          - part: 6
+            start: 56
+            end: 66
+          - part: 7
+            start: 67
+            end: 77
+          - part: 8
+            start: 78
+            end: 87
 
     steps:
       - name: Checkout repository
@@ -40,13 +64,55 @@ jobs:
         run: |
           playwright install chromium --with-deps
 
-      - name: Render 1080p Video (Parallel Chunks + SFX + Google Drive Audio)
+      - name: Render Chunk ${{ matrix.part }} (Scenes ${{ matrix.start }}-${{ matrix.end }})
+        run: |
+          python render.py --fps 24 --workers 3 --start-scene ${{ matrix.start }} --end-scene ${{ matrix.end }} --chunk-only --output chunk_${{ matrix.part }}.mp4
+
+      - name: Upload Chunk ${{ matrix.part }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-chunk-${{ matrix.part }}
+          path: chunk_${{ matrix.part }}.mp4
+          retention-days: 1
+
+  merge-final:
+    needs: render-chunks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy gdown
+
+      - name: Download all rendered chunks
+        uses: actions/download-artifact@v4
+        with:
+          pattern: video-chunk-*
+          path: chunks
+          merge-multiple: true
+
+      - name: Merge Chunks + SFX + Google Drive Audio
         env:
           GDRIVE_AUDIO_URL: ${{ github.event.inputs.gdrive_audio_url || secrets.GDRIVE_AUDIO_URL }}
         run: |
-          python render.py --fps 25 --workers 4 --output output_1080p.mp4
+          python render.py --merge-glob "chunks/chunk_*.mp4" --output output_1080p.mp4
 
-      - name: Upload Rendered 1080p Video
+      - name: Upload Final 1080p Video
         uses: actions/upload-artifact@v4
         with:
           name: tape-market-1080p-video
