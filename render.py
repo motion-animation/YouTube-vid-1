@@ -11,7 +11,6 @@ from pathlib import Path
 
 import gdown
 import numpy as np
-from playwright.async_api import async_playwright
 
 
 def get_drive_url(cli_url: str | None) -> str | None:
@@ -132,6 +131,7 @@ async def render_scene_chunk(context, scene, work_root, fps, total_scenes):
 
 
 async def render_all_chunks(scenes, work_root, fps, workers, total_scenes):
+    from playwright.async_api import async_playwright
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=["--no-sandbox"])
         context = await browser.new_context(viewport={"width": 1280, "height": 720}, device_scale_factor=1.5)
