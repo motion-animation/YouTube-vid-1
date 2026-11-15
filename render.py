@@ -11,7 +11,6 @@ from pathlib import Path
 
 import gdown
 import numpy as np
-from moviepy import AudioFileClip, CompositeAudioClip
 from playwright.async_api import async_playwright
 
 
@@ -93,7 +92,7 @@ def build_sfx_track(manifest, total_duration: float, out_wav: str) -> str | None
     return out_wav
 
 
-async def render_scene_chunk(context, scene, work_root, fps):
+async def render_scene_chunk(context, scene, work_root, fps, total_scenes):
     scene_id = scene["id"]
     dur = scene["duration"]
     num_frames = max(1, int(round(dur * fps)))
@@ -110,11 +109,10 @@ async def render_scene_chunk(context, scene, work_root, fps):
         t = f_idx / fps
         await page.evaluate(f"window.seek({t:.4f});")
         out_jpg = os.path.join(scene_dir, f"f_{f_idx:05d}.jpg")
-        await page.screenshot(path=out_jpg, type="jpeg", quality=92)
+        await page.screenshot(path=out_jpg, type="jpeg", quality=85)
 
     await page.close()
 
-    # Encode this scene chunk in parallel using FFmpeg, then delete raw frames
     chunk_mp4 = os.path.join(work_root, f"chunk_{scene_id:03d}.mp4")
     proc = await asyncio.create_subprocess_exec(
         "ffmpeg", "-y",
@@ -122,27 +120,26 @@ async def render_scene_chunk(context, scene, work_root, fps):
         "-i", os.path.join(scene_dir, "f_%05d.jpg"),
         "-t", f"{dur:.4f}",
         "-vf", "scale=1920:1080",
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
         chunk_mp4,
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.DEVNULL,
     )
     await proc.wait()
     shutil.rmtree(scene_dir, ignore_errors=True)
-    print(f"[Rendered 1080p] Scene {scene_id:03d}/{len(os.listdir('scenes'))} ({num_frames} frames, {dur:.2f}s)")
+    print(f"[Rendered 1080p] Scene {scene_id:03d}/{total_scenes} ({num_frames} frames, {dur:.2f}s)")
     return scene_id, chunk_mp4
 
 
-async def render_all_chunks(scenes, work_root, fps, workers):
+async def render_all_chunks(scenes, work_root, fps, workers, total_scenes):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=["--no-sandbox"])
-        # device_scale_factor=1.5 turns 1280x720 CSS stage into crisp 1920x1080 Full HD!
         context = await browser.new_context(viewport={"width": 1280, "height": 720}, device_scale_factor=1.5)
         sem = asyncio.Semaphore(workers)
 
         async def worker(sc):
             async with sem:
-                return await render_scene_chunk(context, sc, work_root, fps)
+                return await render_scene_chunk(context, sc, work_root, fps, total_scenes)
 
         results = await asyncio.gather(*(worker(sc) for sc in scenes))
         await browser.close()
@@ -150,41 +147,63 @@ async def render_all_chunks(scenes, work_root, fps, workers):
     return [chunk for _, chunk in results]
 
 
-def merge_chunks_and_audio(manifest, chunk_paths, out_mp4, voiceover_path):
+def concat_mp4s(chunk_paths, out_mp4):
     concat_txt = "_concat_list.txt"
     with open(concat_txt, "w", encoding="utf-8") as f:
         for cp in chunk_paths:
             f.write(f"file '{os.path.abspath(cp)}'\n")
-
-    silent_mp4 = "_silent_1080p.mp4"
     subprocess.run(
-        ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_txt, "-c", "copy", silent_mp4],
+        ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_txt, "-c", "copy", out_mp4],
         check=True,
     )
+    if os.path.exists(concat_txt):
+        os.remove(concat_txt)
+
+
+def merge_chunks_and_audio(manifest, chunk_paths, out_mp4, voiceover_path):
+    silent_mp4 = "_silent_1080p.mp4"
+    concat_mp4s(chunk_paths, silent_mp4)
 
     total_dur = manifest["scenes"][-1]["end"]
-    audio_layers = []
-    if voiceover_path and os.path.exists(voiceover_path):
-        print(f"[Audio] Layering voiceover: {voiceover_path}")
-        vo = AudioFileClip(voiceover_path)
-        safe_vo_dur = min(total_dur, max(0.1, vo.duration - 0.05))
-        audio_layers.append(vo.subclipped(0, safe_vo_dur))
-    else:
-        print("[Audio] No voiceover found — rendering with SFX only.")
-
     sfx_wav = build_sfx_track(manifest, total_dur, "_sfx_track.wav")
-    if sfx_wav and os.path.exists(sfx_wav):
-        sfx_clip = AudioFileClip(sfx_wav).subclipped(0, total_dur)
-        audio_layers.append(sfx_clip)
+    has_vo = bool(voiceover_path and os.path.exists(voiceover_path))
+    has_sfx = bool(sfx_wav and os.path.exists(sfx_wav))
 
-    mixed_wav = "_final_audio.wav"
-    if audio_layers:
-        mixed_audio = CompositeAudioClip(audio_layers).with_duration(total_dur)
-        mixed_audio.write_audiofile(mixed_wav, fps=44100)
+    if has_vo and has_sfx:
+        print(f"[Audio] Merging voiceover ({voiceover_path}) + SFX via FFmpeg...")
         subprocess.run(
             [
                 "ffmpeg", "-y",
-                "-i", silent_mp4, "-i", mixed_wav,
+                "-i", silent_mp4,
+                "-i", voiceover_path,
+                "-i", sfx_wav,
+                "-filter_complex", "[1:a][2:a]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]",
+                "-map", "0:v", "-map", "[aout]",
+                "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+                "-movflags", "+faststart", "-shortest",
+                out_mp4,
+            ],
+            check=True,
+        )
+    elif has_vo:
+        print(f"[Audio] Merging voiceover ({voiceover_path}) via FFmpeg...")
+        subprocess.run(
+            [
+                "ffmpeg", "-y",
+                "-i", silent_mp4, "-i", voiceover_path,
+                "-map", "0:v", "-map", "1:a",
+                "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+                "-movflags", "+faststart", "-shortest",
+                out_mp4,
+            ],
+            check=True,
+        )
+    elif has_sfx:
+        subprocess.run(
+            [
+                "ffmpeg", "-y",
+                "-i", silent_mp4, "-i", sfx_wav,
+                "-map", "0:v", "-map", "1:a",
                 "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
                 "-movflags", "+faststart", "-shortest",
                 out_mp4,
@@ -194,7 +213,7 @@ def merge_chunks_and_audio(manifest, chunk_paths, out_mp4, voiceover_path):
     else:
         shutil.move(silent_mp4, out_mp4)
 
-    for tmp in (concat_txt, silent_mp4, sfx_wav, mixed_wav):
+    for tmp in (silent_mp4, sfx_wav):
         if tmp and os.path.exists(tmp):
             os.remove(tmp)
     print(f"[Done] Final 1080p video saved to {out_mp4}")
@@ -202,32 +221,60 @@ def merge_chunks_and_audio(manifest, chunk_paths, out_mp4, voiceover_path):
 
 def main():
     parser = argparse.ArgumentParser(description="Parallel 1080p HTML + SFX + Voiceover Renderer")
-    parser.add_argument("--fps", type=int, default=25, help="Output FPS (default: 25)")
-    parser.add_argument("--workers", type=int, default=4, help="Concurrent Chromium + FFmpeg workers")
+    parser.add_argument("--fps", type=int, default=24, help="Output FPS (default: 24)")
+    parser.add_argument("--workers", type=int, default=3, help="Concurrent Chromium + FFmpeg workers")
     parser.add_argument("--output", type=str, default="output_1080p.mp4", help="Output MP4 filename")
     parser.add_argument("--audio-url", type=str, default=None, help="Google Drive share URL or File ID")
+    parser.add_argument("--start-scene", type=int, default=None, help="1-indexed start scene for matrix chunk")
+    parser.add_argument("--end-scene", type=int, default=None, help="1-indexed end scene for matrix chunk")
+    parser.add_argument("--chunk-only", action="store_true", help="Render silent video chunk only")
+    parser.add_argument("--merge-glob", type=str, default=None, help="Glob of pre-rendered chunk MP4s to merge")
     parser.add_argument("--preview", action="store_true", help="Render only first 3 scenes")
     args = parser.parse_args()
 
     with open("scenes.json", "r", encoding="utf-8") as f:
         manifest = json.load(f)
 
-    if args.preview:
-        manifest["scenes"] = manifest["scenes"][:3]
+    total_scenes = len(manifest["scenes"])
 
-    voiceover = find_voiceover()
-    if not voiceover:
-        drive_url = get_drive_url(args.audio_url)
-        if drive_url:
-            voiceover = download_from_gdrive(drive_url)
+    if args.merge_glob:
+        chunk_paths = sorted(glob.glob(args.merge_glob))
+        if not chunk_paths:
+            raise FileNotFoundError(f"No chunk MP4s matched: {args.merge_glob}")
+        print(f"[Merge] Found {len(chunk_paths)} chunks: {chunk_paths}")
+        voiceover = find_voiceover()
+        if not voiceover:
+            drive_url = get_drive_url(args.audio_url)
+            if drive_url:
+                voiceover = download_from_gdrive(drive_url)
+        merge_chunks_and_audio(manifest, chunk_paths, args.output, voiceover)
+        return
+
+    scenes_to_render = manifest["scenes"]
+    if args.preview:
+        scenes_to_render = scenes_to_render[:3]
+    elif args.start_scene is not None or args.end_scene is not None:
+        s_idx = (args.start_scene or 1) - 1
+        e_idx = args.end_scene or total_scenes
+        scenes_to_render = scenes_to_render[s_idx:e_idx]
 
     work_root = "_render_chunks"
     if os.path.exists(work_root):
         shutil.rmtree(work_root)
     os.makedirs(work_root, exist_ok=True)
 
-    chunk_paths = asyncio.run(render_all_chunks(manifest["scenes"], work_root, args.fps, args.workers))
-    merge_chunks_and_audio(manifest, chunk_paths, args.output, voiceover)
+    chunk_paths = asyncio.run(render_all_chunks(scenes_to_render, work_root, args.fps, args.workers, total_scenes))
+
+    if args.chunk_only:
+        concat_mp4s(chunk_paths, args.output)
+        print(f"[Done] Chunk saved to {args.output}")
+    else:
+        voiceover = find_voiceover()
+        if not voiceover:
+            drive_url = get_drive_url(args.audio_url)
+            if drive_url:
+                voiceover = download_from_gdrive(drive_url)
+        merge_chunks_and_audio(manifest, chunk_paths, args.output, voiceover)
 
     shutil.rmtree(work_root, ignore_errors=True)
 
