@@ -93,8 +93,10 @@ def build_sfx_track(manifest, total_duration: float, out_wav: str) -> str | None
 
 async def render_scene_chunk(context, scene, work_root, fps, total_scenes):
     scene_id = scene["id"]
-    dur = scene["duration"]
-    num_frames = max(1, int(round(dur * fps)))
+    start_f = int(round(scene["start"] * fps))
+    end_f = int(round(scene["end"] * fps))
+    num_frames = max(1, end_f - start_f)
+    dur = num_frames / fps
     scene_dir = os.path.join(work_root, f"scene_{scene_id:03d}")
     os.makedirs(scene_dir, exist_ok=True)
 
