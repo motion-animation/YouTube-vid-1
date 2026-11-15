@@ -1,4 +1,4 @@
-name: Unpack Zip & Clean Repo
+name: Merge Zip Into Repo
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT || github.token }}
 
-      - name: Clean repo, extract any zip, and delete zip
+      - name: Extract & merge zip into repo, then delete zip
         env:
           HAS_PAT: ${{ secrets.GH_PAT != '' }}
         run: |
@@ -29,24 +29,12 @@ jobs:
 
           zip_path = zips[0]
           print(f"Found zip: {zip_path}")
-
           has_pat = os.environ.get("HAS_PAT", "false").lower() == "true"
 
-          # Delete everything in root except .git, .github, and the zip file
-          for item in os.listdir("."):
-              if item in (".git", ".github", zip_path):
-                  continue
-              if os.path.isdir(item):
-                  shutil.rmtree(item)
-              else:
-                  os.remove(item)
-
-          # Extract zip
           with zipfile.ZipFile(zip_path, "r") as zf:
               for member in zf.infolist():
                   if member.is_dir():
                       continue
-                  # Skip .github/workflows/* if GH_PAT is not set (GitHub blocks GITHUB_TOKEN workflow pushes)
                   if not has_pat and member.filename.startswith(".github/workflows/"):
                       print(f"Skipping {member.filename} (set GH_PAT secret to update workflows)")
                       continue
@@ -59,12 +47,11 @@ jobs:
                   with zf.open(member) as src, open(target, "wb") as dst:
                       shutil.copyfileobj(src, dst)
 
-          # Auto-delete zip
           os.remove(zip_path)
-          print("Unpack complete & zip deleted!")
+          print("Merged zip into repo & deleted zip!")
           EOF
 
-      - name: Commit and push extracted files
+      - name: Commit and push merged files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -72,6 +59,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "chore: unpack zip and clean repo"
+            git commit -m "chore: merge extracted zip into repo"
             git push
           fi
